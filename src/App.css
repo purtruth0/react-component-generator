@@ -108,3 +108,8 @@ kbd { display: inline-block; padding: 2px 4px; border: 1px solid #c9cec2; border
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; scroll-behavior: auto !important; } }
 
 @media (max-width: 380px) { .intro h1 { font-size: 27px; } .brand { font-size: 18px; letter-spacing: -.7px; } .brand > span:last-child { white-space: nowrap; } .header-link { white-space: nowrap; padding-left: 8px; } }
+
+.prompt-feedback { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: flex-end; gap: 4px 12px; margin-top: 8px; font-size: 11px; line-height: 1.7; }
+.prompt-length { margin-left: auto; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.prompt-length-error, .prompt-length--invalid { color: var(--danger); }
+.prompt-textarea[aria-invalid="true"] { border-color: var(--danger); }

@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { isPromptLengthValid, MAX_PROMPT_LENGTH } from '../utils/promptValidation';
 
 interface PromptInputProps {
   onGenerate: (prompt: string) => void;
@@ -17,10 +18,11 @@ const EXAMPLES = [
 export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
   const [prompt, setPrompt] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const isLengthValid = isPromptLengthValid(prompt);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (prompt.trim() && !isLoading) onGenerate(prompt.trim());
+    if (prompt.trim() && isLengthValid && !isLoading) onGenerate(prompt.trim());
   };
 
   return (
@@ -30,8 +32,12 @@ export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
         <div className="prompt-heading"><h2>어떤 UI를 만들까요?</h2><p>아이디어를 적으면, 바로 쓸 수 있는 React 컴포넌트로.</p></div>
         <form onSubmit={handleSubmit} className="prompt-form">
           <label className="sr-only" htmlFor="component-prompt">만들고 싶은 컴포넌트</label>
-          <textarea id="component-prompt" ref={inputRef} value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="예: 음악 플레이어를 만들어줘. 앨범 커버와 재생 버튼, 진행 표시줄이 필요해." className="prompt-textarea" rows={4} onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleSubmit(e); }} />
-          <div className="prompt-toolbar"><span className="keyboard-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> 로 생성 <span className="mac-hint"> / Mac은 ⌘</span></span><button type="submit" className="btn-generate" disabled={!prompt.trim() || isLoading}>{isLoading ? <span className="loading-spinner">생성 중...</span> : '컴포넌트 생성'}</button></div>
+          <textarea id="component-prompt" ref={inputRef} aria-invalid={!isLengthValid} aria-describedby={isLengthValid ? "prompt-length" : "prompt-length prompt-length-error"} value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="예: 음악 플레이어를 만들어줘. 앨범 커버와 재생 버튼, 진행 표시줄이 필요해." className="prompt-textarea" rows={4} onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleSubmit(e); }} />
+          <div className="prompt-feedback">
+            {!isLengthValid && <p id="prompt-length-error" className="prompt-length-error" role="alert">프롬프트는 {MAX_PROMPT_LENGTH}자 이내로 입력해 주세요.</p>}
+            <span id="prompt-length" className={`prompt-length ${!isLengthValid ? 'prompt-length--invalid' : ''}`}>{prompt.length} / {MAX_PROMPT_LENGTH}자</span>
+          </div>
+          <div className="prompt-toolbar"><span className="keyboard-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> 로 생성 <span className="mac-hint"> / Mac은 ⌘</span></span><button type="submit" className="btn-generate" disabled={!prompt.trim() || !isLengthValid || isLoading}>{isLoading ? <span className="loading-spinner">생성 중...</span> : '컴포넌트 생성'}</button></div>
         </form>
         <div className="prompt-examples"><span className="examples-label">시작이 막막하다면</span><div className="example-list">{EXAMPLES.map((example) => <button key={example.label} className={`example-chip ${prompt === example.prompt ? 'example-chip--selected' : ''}`} aria-pressed={prompt === example.prompt} onClick={() => { setPrompt(example.prompt); inputRef.current?.focus(); }} type="button"><span aria-hidden="true">{example.icon}</span>{example.label}</button>)}</div></div>
       </div>
