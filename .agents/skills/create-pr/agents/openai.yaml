@@ -1,0 +1,3 @@
+interface:
+  display_name: "Create PR"
+  short_description: "Delegate skill use and PR creation to a subagent"

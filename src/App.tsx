@@ -4,6 +4,8 @@ import { ComponentCard } from './components/ComponentCard';
 import { useComponentGenerator } from './hooks/useComponentGenerator';
 import type { Provider } from './types';
 import './App.css';
+import { useStoredState } from './hooks/useStoredState';
+import { decodeKeys, decodeProvider } from './utils/storedState';
 
 const PROVIDER_CONFIG = {
   anthropic: { label: 'Anthropic', placeholder: 'sk-ant-...' },
@@ -11,12 +13,14 @@ const PROVIDER_CONFIG = {
 } as const;
 
 function App() {
-  const [apiKey, setApiKey] = useState('');
+  const [apiKeys, setApiKeys] = useStoredState('component-club:api-keys', { google: '', anthropic: '' }, decodeKeys);
   const [showKey, setShowKey] = useState(false);
   const [keyError, setKeyError] = useState('');
-  const [provider, setProvider] = useState<Provider>('google');
+  const [provider, setProvider] = useStoredState<Provider>('component-club:provider', 'google', decodeProvider);
+  const apiKey = apiKeys[provider];
+  const setApiKey = (key: string) => setApiKeys((keys) => ({ ...keys, [provider]: key }));
   const [envKeys, setEnvKeys] = useState<Record<Provider, boolean>>({ anthropic: false, google: false });
-  const { components, isLoading, error, generate, removeComponent, clearAll } = useComponentGenerator();
+  const { components, history, isLoading, error, generate, removeComponent, clearAll } = useComponentGenerator();
 
   useEffect(() => {
     fetch('/api/config').then((res) => res.json()).then((data) => setEnvKeys(data.envKeys)).catch(() => {});
@@ -42,13 +46,13 @@ function App() {
       <main>
         <section className="intro" aria-labelledby="page-title"><div><h1 id="page-title">아이디어는 자유롭게.<br />컴포넌트는 손쉽게.</h1><p>설명하고, 미리 보고, 코드로 가져가세요.<br />당신의 다음 인터페이스를 만드는 작은 작업실.</p></div><div className="intro-art" aria-hidden="true"><div className="art-note">A little prompt,<br />a lot of possibility.</div><div className="art-window"><div className="art-title"><span>hello, component</span><span>▣</span></div><div className="art-code"><span>const</span> Idea = () =&gt; (<br /><b>&nbsp; &lt;SomethingGood /&gt;</b><br />);<i>✳</i></div></div><span className="art-caption">Made of ideas. Built with React.</span></div></section>
         <div className="workspace">
-          <section className="composer-panel" aria-label="컴포넌트 생성"><PromptInput onGenerate={handleGenerate} isLoading={isLoading} /></section>
+          <section className="composer-panel" aria-label="컴포넌트 생성"><PromptInput onGenerate={handleGenerate} isLoading={isLoading} history={history} /></section>
           <aside className="settings-panel" aria-label="실행 설정">
             <div className="window-bar window-bar--muted"><span><span aria-hidden="true">⚙</span> 연결 설정</span><span aria-hidden="true">▣</span></div>
             <div className="settings-body"><div className="settings-header"><h2>함께 만들 AI</h2><p>사용할 모델을 선택하고 연결하세요.</p></div>
-              <div className="provider-select"><label htmlFor="provider">AI 제공자</label><select id="provider" value={provider} onChange={(e) => { setProvider(e.target.value as Provider); setApiKey(''); setShowKey(false); setKeyError(''); }}>{Object.entries(PROVIDER_CONFIG).map(([key, { label }]) => <option key={key} value={key}>{label}</option>)}</select></div>
+              <div className="provider-select"><label htmlFor="provider">AI 제공자</label><select id="provider" value={provider} onChange={(e) => { setProvider(e.target.value as Provider); setShowKey(false); setKeyError(''); }}>{Object.entries(PROVIDER_CONFIG).map(([key, { label }]) => <option key={key} value={key}>{label}</option>)}</select></div>
               <div className="api-key-input"><label htmlFor="api-key">API 키</label><div className="api-key-field"><input id="api-key" type={showKey ? 'text' : 'password'} value={apiKey} onChange={(e) => { setApiKey(e.target.value); setKeyError(''); }} autoComplete="off" spellCheck={false} aria-invalid={!!keyError} aria-describedby="key-status" placeholder={hasEnvKey ? '서버 키 연결됨' : PROVIDER_CONFIG[provider].placeholder} /><button className="btn-toggle-key" onClick={() => setShowKey(!showKey)} type="button" aria-label={showKey ? 'API 키 숨기기' : 'API 키 보기'} aria-pressed={showKey}>{showKey ? '숨기기' : '보기'}</button></div><p id="key-status" className={`key-status ${hasEnvKey || apiKey.trim() ? 'key-status--ready' : ''}`}><span className="status-dot" />{hasEnvKey ? '서버 키가 연결되어 있어요.' : apiKey.trim() ? '입력한 키로 생성할 준비가 됐어요.' : 'API 키를 입력하면 시작할 수 있어요.'}</p></div>
-              <div className="settings-note"><span aria-hidden="true">⌑</span><p>입력한 키는 브라우저에 저장하지 않아요. 이 작업에서만 사용합니다.</p></div>
+              <div className="settings-note"><span aria-hidden="true">⌑</span><p>입력한 키는 이 브라우저에 저장됩니다. 공용 기기에서는 사용 후 키를 지워 주세요.</p></div>
             </div>
           </aside>
         </div>
