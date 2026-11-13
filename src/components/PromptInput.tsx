@@ -4,6 +4,7 @@ import { isPromptLengthValid, MAX_PROMPT_LENGTH } from '../utils/promptValidatio
 interface PromptInputProps {
   onGenerate: (prompt: string) => void;
   isLoading: boolean;
+  history?: string[];
 }
 
 const EXAMPLES = [
@@ -15,7 +16,7 @@ const EXAMPLES = [
   { label: '고객 상세', icon: '▤', prompt: '테이블 행 상세보기 패널. 선택한 고객의 기본 정보와 최근 활동 표시' },
 ];
 
-export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
+export function PromptInput({ onGenerate, isLoading, history = [] }: PromptInputProps) {
   const [prompt, setPrompt] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const isLengthValid = isPromptLengthValid(prompt);
@@ -31,6 +32,7 @@ export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
       <div className="composer-body">
         <div className="prompt-heading"><h2>어떤 UI를 만들까요?</h2><p>아이디어를 적으면, 바로 쓸 수 있는 React 컴포넌트로.</p></div>
         <form onSubmit={handleSubmit} className="prompt-form">
+          {history.length > 0 && <div className="prompt-history"><label htmlFor="prompt-history">프롬프트 히스토리</label><select id="prompt-history" value="" onChange={(e) => { setPrompt(e.target.value); inputRef.current?.focus(); }}><option value="" disabled>이전 프롬프트 선택</option>{history.map((item) => <option key={item} value={item}>{item}</option>)}</select></div>}
           <label className="sr-only" htmlFor="component-prompt">만들고 싶은 컴포넌트</label>
           <textarea id="component-prompt" ref={inputRef} aria-invalid={!isLengthValid} aria-describedby={isLengthValid ? "prompt-length" : "prompt-length prompt-length-error"} value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="예: 음악 플레이어를 만들어줘. 앨범 커버와 재생 버튼, 진행 표시줄이 필요해." className="prompt-textarea" rows={4} onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleSubmit(e); }} />
           <div className="prompt-feedback">

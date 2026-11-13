@@ -25,4 +25,5 @@ React 19, TypeScript 5.9, react-live 4, Testing Library, Vitest/jsdom. 의존성
 - `LiveProvider`의 `noInline`과 서버의 명시적 `render(...)` 계약을 함께 유지한다. 생성 코드 실행 오류는 `LiveError`로 표시한다. 근거: [components/LivePreview.tsx](components/LivePreview.tsx:14), [../server/generator.ts](../server/generator.ts:16).
 - 미리보기 새로고침은 key를 바꿔 리마운트하는 동작이고, 재생성은 동일 프롬프트로 API를 다시 호출하는 동작이다. 두 동작을 합치지 않는다. 근거: [components/ComponentCard.tsx](components/ComponentCard.tsx:33), [components/ComponentCard.tsx](components/ComponentCard.tsx:41), [components/ComponentCard.tsx](components/ComponentCard.tsx:70).
 - 빈 프롬프트·로딩 중 제출 방어는 버튼 비활성화와 제출 핸들러 양쪽에 유지한다. 키보드 단축키도 같은 핸들러를 호출한다. 근거: [components/PromptInput.tsx](components/PromptInput.tsx:21), [components/PromptInput.tsx](components/PromptInput.tsx:33).
-- API 키를 저장소·localStorage에 영속화하지 않는다. Provider 전환 시 입력 키·노출 상태를 초기화하는 흐름을 유지한다. 근거: [App.tsx](App.tsx:14), [App.tsx](App.tsx:49), [App.tsx](App.tsx:51).
+- 사용자가 입력한 API 키는 명시적 제품 요구에 따라 Provider별로 localStorage에 저장한다. 서버 환경변수의 실제 키는 전달하거나 저장하지 않는다. Provider 전환 시 선택한 Provider의 키를 사용하고 노출 상태는 숨김으로 초기화한다. 근거: [App.tsx](App.tsx), [hooks/useStoredState.ts](hooks/useStoredState.ts).
+- 저장된 생성 목록은 복원 시 `createdAt`을 유효한 `Date`로 변환한다. 저장소 접근 차단·용량 초과·잘못된 데이터가 현재 세션의 생성 동작을 중단시키지 않도록 유지한다. 근거: [utils/storedState.ts](utils/storedState.ts), [hooks/useStoredState.ts](hooks/useStoredState.ts).
